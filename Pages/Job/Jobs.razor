@@ -1,0 +1,74 @@
+@page "/"
+@page "/jobs/available"
+@inject IJobsService JobsService
+@inject NavigationManager NavigationManager
+
+<MudContainer>
+    <div class="row d-flex row-cols-1 row-cols-md-2 row-cols-lg-3 g-2">
+        @if (JobList != null)
+        {
+            @foreach (var job in JobList)
+            {
+                <div class="col">
+                    <MudCard>
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h5">@job.Company</MudText>
+                            </CardHeaderContent>
+                            <CardHeaderActions>
+                                <MudAvatar Color="Color.Inherit" Variant="Variant.Filled">
+                                    <MudIcon Color="Color.Dark" Icon="@Icons.Filled.AssuredWorkload" />
+                                </MudAvatar>
+                            </CardHeaderActions>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6">@job.JobTitle</MudText>
+                            <MudText Typo="Typo.caption">
+                                <MudIcon Icon="@Icons.Filled.LocationOn" Size="Size.Small"/> @job.Location</MudText>
+                            <MudList Clickable="false" Dense="true" >
+                                <MudListItem Icon="@Icons.Filled.HealthAndSafety" IconColor="@(job.HealthCovered ? Color.Success : Color.Secondary)">
+                                    @(job.HealthCovered ? "Health Insurance Coverage" : "Health Insurance Not Covered")
+                                </MudListItem>
+                                <MudListItem Icon="@Icons.Filled.Work" IconColor="Color.Info">
+                                    @job.JType | @job.ContractType
+                                </MudListItem>
+                                <MudListItem Icon="@Icons.Filled.MonetizationOn" IconColor="Color.Primary">
+                                    @job.Salary +/-
+                                </MudListItem>
+                            </MudList>
+                            <MudText Typo="Typo.body2">@job.Description.Truncate(255)</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary"> @job.Created.Humanize() </MudText>
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudLink Variant="Variant.Text" Color="Color.Primary" @onclick="@(() => NavigateToDetailPage(job.Id))">Read More</MudLink>
+                        </MudCardActions>
+                    </MudCard>
+                </div>
+            }
+        }
+        else
+        {
+            <MudProgressLinear Color="Color.Info" Buffer="true" Variant="Variant.Filled" Class="my-7" />
+        }
+    </div>
+</MudContainer>
+
+@code
+{
+    public List<Job>? JobList = new List<Job>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetJobList();
+    }
+
+    public async Task GetJobList()
+    {
+        JobList = await JobsService.GetMultipleJobs();
+    }
+
+    void NavigateToDetailPage(int idparam)
+    {
+        NavigationManager.NavigateTo($"/job/{idparam}");
+    }
+}

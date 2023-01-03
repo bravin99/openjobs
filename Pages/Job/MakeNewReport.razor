@@ -1,0 +1,70 @@
+@page "/jobs/{jobId:int}/report"
+@inject IJobsService JobsService
+@inject IReportService ReportService
+@inject IJSRuntime JsRuntime
+@inject NavigationManager NavigationManager
+
+<PageTitle>Add A Report</PageTitle>
+
+@if (job == null)
+{
+    <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">Sorry, this job does not exist.</MudAlert>
+}
+else
+{
+    <MudPaper Width="100%" Elevation="0">
+        <MudText Typo="Typo.h3" Class="text-center"> @job.JobTitle ~ @job.Created.Humanize() </MudText>
+        <MudText Typo="Typo.body1" Class="text-center mt-3"> Please add your report description below!</MudText>
+        <MudContainer Fixed="true">
+            <EditForm Model="@NewReport" OnValidSubmit="OnValidSubmit">
+                <DataAnnotationsValidator />
+                <MudItem>
+                    @if (success == true)
+                    {
+                        @if (!string.IsNullOrEmpty(ReturnedReponse)) 
+                        {
+                            <MudText Color="Color.Success">@ReturnedReponse</MudText>
+                        }
+                    }
+                    else
+                    {
+                        <MudText Color="@Color.Error">
+                            <ValidationSummary />
+                        </MudText>
+                    }
+                </MudItem>
+                <MudItem Class="mt-2">
+                    <MarkdownEditor @bind-Value="NewReport.ReporterMessage" EditMode="EditMode.WYSIWYG" />
+                </MudItem>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Secondary" Class="ml-auto">Submit Report</MudButton>
+                </MudCardActions>
+            </EditForm>
+        </MudContainer>
+    </MudPaper>
+}
+
+@code
+{
+    [Parameter] public int jobId { get; set; }
+    public ReportJobDto NewReport = new ReportJobDto();
+    public Job job = new Job();
+    public bool success = false;
+    public string ReturnedReponse = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetJobWithId();
+    }
+
+    async Task GetJobWithId()
+    {
+        job = await JobsService.GetSingleJob(jobId);
+    }
+
+    public async Task OnValidSubmit()
+    {
+        ReturnedReponse = await ReportService.SubmitReport(job.Id, NewReport);
+        success = true;
+    }
+}

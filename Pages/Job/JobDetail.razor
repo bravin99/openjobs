@@ -1,0 +1,129 @@
+﻿@page "/job/{Id:int}"
+@inject IJobsService JobsService
+@inject IReportService ReportService
+@inject IJSRuntime JsRuntime
+@inject NavigationManager NavigationManager
+
+<PageTitle>Job Detail Page</PageTitle>
+
+@if (Id == null)
+{
+    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">Sorry, this job no longer exist. Check out our <MudLink Href="/jobs/available" Underline="Underline.Always" Color="Color.Inherit">jobs page</MudLink> for more.</MudAlert>
+}
+else
+{
+    <MudPaper Width="100%" Elevation="0">
+        @if (Reports != null)
+        {
+            <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">
+                Please proceed with caution, this job has some unchecked reports associated with it.
+            </MudAlert>
+        }
+        <MudContainer Fixed="true" >
+            @if (job != null)
+            {
+                <MudPaper Height="100%" Width="100%" Square="true" Class="p-3" Elevation="0">
+                    <MudCard Elevation="0">
+                        <MudCardContent>
+                            <MudText Typo="Typo.h2">@job.JobTitle</MudText>
+                            <MudText Typo="Typo.body1">
+                                <MudIcon Icon="@Icons.Filled.AssuredWorkload" Color="Color.Info" /> @job.Company 
+                                <MudIcon Icon="@Icons.Filled.LocationOn" Color="Color.Success" /> @job.Location
+                                <MudIcon Icon="@Icons.Filled.AccessTimeFilled" Color="Color.Primary" /> @job.Created.Humanize()
+                            </MudText>
+                            <MudText Class="mt-3 text-center">
+                                <MudChip Icon="@Icons.Filled.HealthAndSafety" Label="true" IconColor="@(job.HealthCovered ? Color.Success : Color.Secondary)">
+                                    @(job.HealthCovered ? "Health Insurance Coverage" : "Health Insurance Not Covered")
+                                </MudChip>
+                                <MudChip Icon="@Icons.Filled.Work" Label="true" IconColor="Color.Info">
+                                    @job.JType | @job.ContractType
+                                </MudChip>
+                                <MudChip Icon="@Icons.Filled.MonetizationOn" Label="true" IconColor="Color.Success">
+                                    @job.Salary +/-
+                                </MudChip>
+                            </MudText>
+                            <MudGrid>
+                                <MudItem xs="12" sm="2">
+                                    <MudList Clickable="true">
+                                        <MudListSubheader>
+                                            Job Actions
+                                        </MudListSubheader>
+                                        <MudListItem Icon="@Icons.Filled.CheckBox" @onclick="@(() => NavigationManager.NavigateTo($"/jobs/apply/{job.Id}"))" IconColor="Color.Success">
+                                            Apply
+                                        </MudListItem>
+                                        <MudListItem Icon="@Icons.Filled.EditNote" @onclick="@(() => NavigationManager.NavigateTo($"/jobs/edit/{job.Id}"))" IconColor="Color.Info">
+                                            Edit
+                                        </MudListItem>
+                                        <MudListItem Icon="@Icons.Filled.PlaylistRemove" @onclick="@(() => UnlistJob(@job.Id))" IconColor="Color.Secondary">
+                                            Unlist
+                                        </MudListItem>
+                                        <MudListItem Icon="@Icons.Filled.WarningAmber" IconColor="Color.Warning" @onclick="ConfirmReportProceed">
+                                            Report
+                                        </MudListItem>
+                                    </MudList>
+                                </MudItem>
+                                <MudItem xs="12" sm="10">
+                                    <MarkdownViewer Value="@job.Description.Humanize()" />
+                                    @* <MudText Class="mt-5">
+                                        @job.Description.Humanize()
+                                    </MudText> *@
+                                </MudItem>
+                               
+                            </MudGrid>
+                        </MudCardContent>
+                        @* <MudCardActions>
+                            <MudButton Variant="Variant.Text" Color="Color.Primary">Learn More</MudButton>
+                        </MudCardActions> *@
+                    </MudCard>
+                </MudPaper>
+            }
+            else
+            {}
+            @* <MudPaper Height="100%" Width="100%" Square="true" Class="mud-theme-primary"></MudPaper> *@
+        </MudContainer>
+    </MudPaper>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    public string Message = string.Empty;
+    public Job job { get; set; } = new Job();
+    public List<ReportJob> Reports = new List<ReportJob>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RetrieveJob();
+        await GetAssociatedReports();
+    }
+
+    public async Task RetrieveJob()
+    {
+        if (Id != null)
+        {
+            job = await JobsService.GetSingleJob(Id);
+        }
+    }
+
+    public async Task UnlistJob(int id)
+    {
+        var job = await JobsService.GetSingleJob(id);
+        if (await JsRuntime.InvokeAsync<bool>("confirm", $"You are about to unlist the job: '{job.JobTitle}'. Are you sure of this action?"))
+        {
+            var result = await JobsService.UnlistJob(id);
+            NavigationManager.NavigateTo("/");
+        }
+    }
+
+    private async void ConfirmReportProceed()
+    {
+        if (await JsRuntime.InvokeAsync<bool>("confirm", $"You are about to proceed to the report page, are you sure about this action on '{job.JobTitle}' job advert ?"))
+        {
+            NavigationManager.NavigateTo($"/jobs/{job.Id}/report");
+        }
+    }
+
+    public async Task GetAssociatedReports()
+    {
+        Reports = await ReportService.GetReportsByJobId(job.Id);
+    }
+}

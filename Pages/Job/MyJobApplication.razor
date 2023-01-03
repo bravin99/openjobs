@@ -1,0 +1,89 @@
+@page "/jobs/apply/{jobId:int}"
+@inject IJobsService JobsService
+@inject NavigationManager NavigationManager
+
+<div class="container-fluid mb-2">
+    <h1 class="text-center text-uppercase">Submit application for <span>"@ApplyJob.JobTitle"</span> </h1>
+</div>
+
+<MudPaper Width="100%" Elevation="0">
+    <MudContainer Class="p-3">
+        @if (ApplyJob != null)
+        {
+            <EditForm Model="@NewApplication" OnValidSubmit="OnValidSubmit">
+                <DataAnnotationsValidator />
+                    <MudItem>
+                        @if (success == true)
+                        {
+                            @if (!string.IsNullOrEmpty(ReturnedReponse)) 
+                            {
+                                <MudText Color="Color.Success">@ReturnedReponse</MudText>
+                            }
+                        }
+                        else
+                        {
+                            <MudText Color="@Color.Error">
+                                <ValidationSummary />
+                            </MudText>
+                        }
+                    </MudItem>
+                    <MudSelect @bind-Value="NewApplication.EducationLevel" T="EducationLevel" Label="Level of Education" AnchorOrigin="Origin.BottomCenter" Class="mt-3">
+                        <MudSelectItem Value="@EducationLevel.PhD" />
+                        <MudSelectItem Value="@EducationLevel.Masters" />
+                        <MudSelectItem Value="@EducationLevel.Degree" />
+                        <MudSelectItem Value="@EducationLevel.Diploma" />
+                        <MudSelectItem Value="@EducationLevel.Apprentice" />
+                        <MudSelectItem Value="@EducationLevel.Highschool" />
+                    </MudSelect>
+                    <MudItem Class="mt-3">
+                        <label for="uploadresume">Select Resume (pdf): </label>
+                        <InputFile id="uploadresume" OnChange="@LoadFiles" multiple />
+                    </MudItem>
+                    @* <MudTextField Label="Resume" Class="mt-3" @bind-Value="NewApplication.Resume" For="@(() => NewApplication.Resume)" /> *@
+                    <MudItem Class="mt-4">
+                        <label for="CoverLetter">Write or paste your cover Letter</label>
+                        <ValidationMessage For="@(() => NewApplication.CoverLetter)" />
+                        <MarkdownEditor @bind-Value="NewApplication.CoverLetter" EditMode="EditMode.WYSIWYG" />
+                    </MudItem>
+                    <MudCardActions>
+                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="mr-auto ml-auto">Submit Application</MudButton>
+                    </MudCardActions>
+            </EditForm>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">Sorry, this job does not exist.</MudAlert>
+        }
+    </MudContainer>
+</MudPaper>
+
+
+@code
+{
+    [Parameter] public int jobId { get; set; }
+    public Job ApplyJob { get; set; } = new Job();
+    public JobApplicationDto NewApplication { get; set; } = new JobApplicationDto();
+    public string ReturnedReponse = string.Empty;
+    public bool success = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetJobToApply();
+    }
+
+    async Task GetJobToApply()
+    {
+        ApplyJob = await JobsService.GetSingleJob(jobId);
+    }
+
+    async Task LoadFiles()
+    {
+        @* todo *@
+    }
+
+    async Task OnValidSubmit()
+    {
+        @* todo *@
+        success = true;
+    }
+}

@@ -1,0 +1,12 @@
+﻿<MudPaper Height="100vh" Class="d-inline-flex py-2" Elevation="0">
+    <MudNavMenu Class="mud-width-full">
+        <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Menu</MudText>
+        <MudDivider Class="my-2" />
+        <MudNavLink Href="/" Icon="@Icons.Filled.Dashboard">Home</MudNavLink>
+        <MudNavLink Href="/extra" Icon="@Icons.Filled.Storage">Extra</MudNavLink>
+        <MudNavGroup Title="Jobs" Icon="@Icons.Filled.Cases" Expanded="true">
+            <MudNavLink Href="/jobs/available" Icon="@Icons.Filled.BookmarkAdded" IconColor="Color.Success">Available</MudNavLink>
+            <MudNavLink Href="/jobs/create" Icon="@Icons.Filled.Add" IconColor="Color.Success">Add Job</MudNavLink>
+        </MudNavGroup>
+    </MudNavMenu>
+</MudPaper>

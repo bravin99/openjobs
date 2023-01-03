@@ -1,0 +1,33 @@
+@page "/jobs/create"
+@inject IJobsService JobsService
+@inject NavigationManager NavigationManager
+@attribute [Authorize]
+
+<PageTitle>Add a new job</PageTitle>
+
+<div class="container-fluid mb-2">
+    <h1 class="text-center text-uppercase">Add a new job</h1>
+</div>
+
+<MudPaper Width="100%" Elevation="0">
+    <MudContainer Class="p-3">
+        <JobForm model="NewJob" OnValidSubmit="OnValidSubmit" success="success" ButtonText="Add New Job" />
+    </MudContainer>
+</MudPaper>
+
+@code
+{
+    public JobDto NewJob { get; set; } = new JobDto();
+    bool success = false;
+    @* private EditContext? CurrentEditContext; *@
+    public string Desc = string.Empty;
+    
+    public async Task OnValidSubmit()
+    {
+        await JobsService.AddNewJob(NewJob);
+        success = true;
+        @* Reset the job dto if successful *@
+        NewJob = new JobDto();
+        @* NavigationManager.NavigateTo($"/job/{NewJob.Id}"); *@
+    }
+}

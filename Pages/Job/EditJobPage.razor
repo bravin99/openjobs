@@ -1,0 +1,51 @@
+@page "/jobs/edit/{id:int}"
+@inject IJobsService JobsService
+@inject NavigationManager NavigationManager
+@attribute [Authorize]
+
+<PageTitle>Add a new job</PageTitle>
+
+<div class="container-fluid mb-2">
+    <h1 class="text-center text-uppercase">Edit job</h1>
+</div>
+
+<MudPaper Width="100%" Elevation="0">
+    <MudContainer Class="p-3">
+        <JobForm model="EditJob" OnValidSubmit="OnValidSubmit" success="success" ButtonText="Save Edit" />
+    </MudContainer>
+</MudPaper>
+
+@code
+{
+    public JobDto EditJob { get; set; } = new JobDto();
+    public Job request { get; set; } = new Job();
+    public bool success = false;
+    [Parameter] public int id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetEditJob();
+
+        if (request != null)
+        {
+            EditJob.JobTitle = request.JobTitle;
+            EditJob.Company = request.Company;
+            EditJob.Location = request.Location;
+            EditJob.ContractType = request.ContractType;
+            EditJob.Salary = request.Salary;
+            EditJob.HealthCovered = request.HealthCovered;
+            EditJob.Description = request.Description;
+        }
+    }
+
+    async Task GetEditJob()
+    {
+        request = await JobsService.GetSingleJob(id);
+    }
+
+    public async Task OnValidSubmit()
+    {
+        await JobsService.EditJob(id, EditJob);
+        success = true;
+    }
+}

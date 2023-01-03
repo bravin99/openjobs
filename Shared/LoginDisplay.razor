@@ -1,0 +1,29 @@
+﻿
+@inject NavigationManager NavigationManager
+
+<AuthorizeView>
+    <Authorized>
+        <MudMenu AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopRight">
+            <ActivatorContent>
+                <MudAvatar Image="images/profile.jpg" />
+                @* <MudAvatar Image="images/toiletvisit.jpg" /> *@
+            </ActivatorContent>
+            <ChildContent>
+                <MudMenuItem>
+                    <MudButton Href="Identity/Account/Manage" Variant="Variant.Text" Size="Size.Medium" Class="w-100" Color="Color.Info">
+                        @context.User.Identity?.Name!
+                    </MudButton>
+                </MudMenuItem>
+                <MudMenuItem>
+                    <form action="Identity/Account/Logout" method="post">
+                        <MudButton Variant="Variant.Text" Size="Size.Medium" Color="Color.Secondary" ButtonType="ButtonType.Submit" Class="w-100">Logout</MudButton>
+                    </form>
+                </MudMenuItem>
+            </ChildContent>
+        </MudMenu>
+    </Authorized>
+    <NotAuthorized>
+        <MudLink Href="Identity/Account/Register" Color="Color.Inherit" Class="">Register</MudLink>
+        <MudLink Href="Identity/Account/Login" Color="Color.Inherit" Class="ms-2">Login</MudLink>
+    </NotAuthorized>
+</AuthorizeView>

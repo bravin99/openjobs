@@ -1,0 +1,59 @@
+
+<EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator />
+    <MudGrid>
+        <MudItem xs="12" sm="7">
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Job Title" HelperText="Max. 100 characters"
+                                @bind-Value="model.JobTitle" For="@(() => model.JobTitle)"/>
+                    <MudTextField Label="Company" Class="mt-3"
+                                @bind-Value="model.Company" For="@(() => model.Company)"/>
+                    <MudSelect @bind-Value="model.JType" T="JobType" Label="Job Type" AnchorOrigin="Origin.BottomCenter" Class="mt-3">
+                        <MudSelectItem Value="@JobType.Remote" />
+                        <MudSelectItem Value="@JobType.Onsite" />
+                        <MudSelectItem Value="@JobType.Hybrid" />
+                    </MudSelect>
+                    <MudTextField Label="Location" HelperText="Enter the locaion" Class="mt-3"
+                                @bind-Value="model.Location" For="@(() => model.Location)" />
+                    <MudTextField Label="Contract Type" HelperText="e.g. internship, temporary, permanent, e.t.c." Class="mt-3"
+                                @bind-Value="model.ContractType" For="@(() => model.ContractType)" />
+                    <MudNumericField Label="Salary" 
+                                @bind-Value="model.Salary" For="@(() => model.Salary)" />
+                    <MudSwitch Label="Health insurance covered?" @bind-Checked="@model.HealthCovered" Color="Color.Secondary" Class="mt-3 mb-3" />
+                    @* <MudTextField @bind-Value="model.Description" Label="Job Description" Variant="Variant.Outlined" Class="mt-3"
+                        For="@(() => model.Description )" Lines="6"></MudTextField> *@
+                    <MudItem>
+                        <MarkdownEditor @bind-Value="model.Description" EditMode="EditMode.WYSIWYG" />
+                    </MudItem>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">@ButtonText</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="5">
+            <MudPaper Class="pa-4 mud-height-full">
+                <MudText Typo="Typo.subtitle2">Validation Summary</MudText>
+                @if (success)
+                {
+                    <MudText Color="Color.Success">Success</MudText>
+                }
+                else
+                {
+                    <MudText Color="@Color.Error">
+                        <ValidationSummary />
+                    </MudText>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</EditForm>
+
+@code
+{
+    [Parameter] public JobDto model { get; set; } = new JobDto();
+    [Parameter] public EventCallback OnValidSubmit { get; set; }
+    [Parameter] public bool success { get; set; }
+    [Parameter] public string ButtonText {get; set;} = "Save";
+}
