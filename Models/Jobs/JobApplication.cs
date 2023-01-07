@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Components.Forms;
 
 namespace OpenJobs.Models
 {
@@ -19,7 +20,8 @@ namespace OpenJobs.Models
         public IdentityUser? AppliedBy { get; set; }
         public int JobId { get; set; }
         [Required]
-        public string? Resume { get; set; }
+        public string Resume { get; set; } = string.Empty;
+        public string StoredResume { get; set; } = string.Empty;
         [Required]
         public string CoverLetter { get; set; } = string.Empty;
         public EducationLevel EducationLevel { get; set; } = EducationLevel.Diploma;

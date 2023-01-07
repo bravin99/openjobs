@@ -8,8 +8,8 @@ namespace OpenJobs.Models
         [Required]
         public EducationLevel EducationLevel { get; set; }
         [Required]
-        public string? Resume { get; set; }
-        [Required]
         public string CoverLetter { get; set; } = string.Empty;
+        public string Resume { get; set; } = string.Empty;
+        public string StoredResume { get; set; } = string.Empty;
     }
 }

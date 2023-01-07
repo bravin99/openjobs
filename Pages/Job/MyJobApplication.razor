@@ -1,6 +1,7 @@
 @page "/jobs/apply/{jobId:int}"
 @inject IJobsService JobsService
 @inject NavigationManager NavigationManager
+@inject IWebHostEnvironment Environment
 
 <div class="container-fluid mb-2">
     <h1 class="text-center text-uppercase">Submit application for <span>"@ApplyJob.JobTitle"</span> </h1>
@@ -10,7 +11,7 @@
     <MudContainer Class="p-3">
         @if (ApplyJob != null)
         {
-            <EditForm Model="@NewApplication" OnValidSubmit="OnValidSubmit">
+            <EditForm Model="@NewApplication" ValidationDelay="0" OnValidSubmit="OnValidSubmit">
                 <DataAnnotationsValidator />
                     <MudItem>
                         @if (success == true)
@@ -35,11 +36,37 @@
                         <MudSelectItem Value="@EducationLevel.Apprentice" />
                         <MudSelectItem Value="@EducationLevel.Highschool" />
                     </MudSelect>
-                    <MudItem Class="mt-3">
-                        <label for="uploadresume">Select Resume (pdf): </label>
-                        <InputFile id="uploadresume" OnChange="@LoadFiles" multiple />
-                    </MudItem>
-                    @* <MudTextField Label="Resume" Class="mt-3" @bind-Value="NewApplication.Resume" For="@(() => NewApplication.Resume)" /> *@
+                    <MudFileUpload Class="mt-3" T="IBrowserFile" Accept=".pdf" OnFilesChanged="UploadFiles" MaximumFileCount="100" SuppressOnChangeWhenInvalid="true">
+                        <ButtonTemplate Context="uploadResume">
+                            <MudButton HtmlTag="label"
+                                    Variant="Variant.Filled"
+                                    Color="Color.Primary"
+                                    StartIcon="@Icons.Material.Filled.CloudUpload"
+                                    for="@uploadResume">
+                                Resume (Only .pdf files)
+                            </MudButton>
+                        </ButtonTemplate>
+                    </MudFileUpload>  
+                    @if (isLoading)
+                    {
+                        <p>Progress: @string.Format("{0:P0}", progressPercent)</p>
+                    }
+                    else
+                    {
+                        <MudList>
+                            @foreach (var file in GetResumefiles)
+                            {
+                                <MudListItem>
+                                    <MudList>
+                                        <MudListItem>Name: @file.Name</MudListItem>
+                                        <MudListItem>Last modified: @file.LastModified.ToString()</MudListItem>
+                                        <MudListItem>Size (bytes): @file.Size</MudListItem>
+                                        <MudListItem>Content type: @file.ContentType</MudListItem>
+                                    </MudList>
+                                </MudListItem>
+                            }
+                        </MudList>
+                    }         
                     <MudItem Class="mt-4">
                         <label for="CoverLetter">Write or paste your cover Letter</label>
                         <ValidationMessage For="@(() => NewApplication.CoverLetter)" />
@@ -66,6 +93,13 @@
     public string ReturnedReponse = string.Empty;
     public bool success = false;
 
+    private List<IBrowserFile> GetResumefiles = new List<IBrowserFile>();
+    private long maxFileSize = 1024 * 30;
+    private int maxAllowedFiles = 3;
+    private bool isLoading;
+    private decimal progressPercent;
+
+
     protected override async Task OnInitializedAsync()
     {
         await GetJobToApply();
@@ -76,14 +110,44 @@
         ApplyJob = await JobsService.GetSingleJob(jobId);
     }
 
-    async Task LoadFiles()
-    {
-        @* todo *@
-    }
-
     async Task OnValidSubmit()
     {
-        @* todo *@
+        var result = await JobsService.ApplyForJob(ApplyJob.Id, NewApplication);
         success = true;
+    }
+
+    private async Task UploadFiles(InputFileChangeEventArgs e)
+    {
+        isLoading = true;
+        GetResumefiles.Clear();
+        progressPercent = 0;
+
+        foreach (var file in e.GetMultipleFiles(maxAllowedFiles))
+        {
+            try
+            {
+                var trustedFileName = Path.GetRandomFileName();
+                var path = Path.Combine(Environment.ContentRootPath,
+                    Environment.EnvironmentName, "resume_unsafe_uploads", trustedFileName);
+                await using FileStream writeStream = new(path, FileMode.Create);
+                using var readStream = file.OpenReadStream(maxFileSize);
+                var bytesRead = 0;
+                var totalRead = 0;
+                var buffer = new byte[1024 * 10];
+                while ((bytesRead = await readStream.ReadAsync(buffer)) != 0)
+                {
+                    totalRead += bytesRead;
+                    await writeStream.WriteAsync(buffer, 0, bytesRead);
+                    progressPercent = Decimal.Divide(totalRead, file.Size);
+                    StateHasChanged();
+                }
+                GetResumefiles.Add(file);
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine($"File: {file.Name} => Error: {exc.Message}");
+            }
+        }
+        isLoading = false;
     }
 }

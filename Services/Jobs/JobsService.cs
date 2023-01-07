@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using OpenJobs.Models;
 using OpenJobs.Data;
 using Microsoft.AspNetCore.Identity;
-
+using System.Net;
 namespace OpenJobs.Services
 {
     public class JobsService : IJobsService
@@ -10,7 +10,6 @@ namespace OpenJobs.Services
         private readonly ApplicationDbContext _dbcontext;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IHttpContextAccessor _httpContextAccessor;
-
         public JobsService(ApplicationDbContext dbcontext, UserManager<IdentityUser> userManager, IHttpContextAccessor HttpContextAccessor)
         {
             _dbcontext = dbcontext;
@@ -131,6 +130,7 @@ namespace OpenJobs.Services
                 NewApplication.JobId = JobId;
                 NewApplication.CoverLetter = request.CoverLetter;
                 NewApplication.Resume = request.Resume;
+                NewApplication.StoredResume = request.StoredResume;
                 NewApplication.EducationLevel = request.EducationLevel;
 
                 await _dbcontext.JobApplications!.AddAsync(NewApplication);
